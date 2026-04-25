@@ -301,7 +301,14 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Challenge01_StudentsWithMoreThanOneActiveCourse()
     {
-        throw NotImplemented(nameof(Challenge01_StudentsWithMoreThanOneActiveCourse));
+        return UniversityData.Students
+            .Join(UniversityData.Enrollments.Where(e => e.IsActive),
+                s => s.Id,
+                e => e.StudentId,
+                (s, e) => new { s.FirstName, s.LastName })
+            .GroupBy(x => new { x.FirstName, x.LastName })
+            .Where(g => g.Count() > 1)
+            .Select(g => $"{g.Key.FirstName} {g.Key.LastName} {g.Count()}");
     }
 
     /// <summary>
@@ -336,7 +343,17 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Challenge03_LecturersAndAverageGradeAcrossTheirCourses()
     {
-        throw NotImplemented(nameof(Challenge03_LecturersAndAverageGradeAcrossTheirCourses));
+        return UniversityData.Lecturers
+            .Join(UniversityData.Courses,
+                l => l.Id,
+                c => c.LecturerId,
+                (l, c) => new { Lecturer = l, Course = c })
+            .Join(UniversityData.Enrollments.Where(e => e.FinalGrade != null),
+                x => x.Course.Id,
+                e => e.CourseId,
+                (x, e) => new { x.Lecturer.FirstName, x.Lecturer.LastName, e.FinalGrade })
+            .GroupBy(x => new { x.FirstName, x.LastName })
+            .Select(g => $"{g.Key.FirstName} {g.Key.LastName} {g.Average(x => x.FinalGrade):F2}");
     }
 
     /// <summary>
@@ -354,7 +371,14 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Challenge04_CitiesAndActiveEnrollmentCounts()
     {
-        throw NotImplemented(nameof(Challenge04_CitiesAndActiveEnrollmentCounts));
+        return UniversityData.Students
+            .Join(UniversityData.Enrollments.Where(e => e.IsActive),
+                s => s.Id,
+                e => e.StudentId,
+                (s, e) => s.City)
+            .GroupBy(city => city)
+            .OrderByDescending(g => g.Count())
+            .Select(g => $"{g.Key} {g.Count()}");
     }
 
     private static NotImplementedException NotImplemented(string methodName)
